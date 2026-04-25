@@ -37,10 +37,6 @@ function fileToGenerativePart(buffer, mimeType) {
 // API ROUTES
 // ==========================================
 
-// ==========================================
-// API ROUTES
-// ==========================================
-
 // 0. Health Check Route (Crucial for Render)
 app.get('/', (req, res) => {
   res.send('Sapiens Backend is running smoothly on Render! 🚀');
@@ -131,4 +127,11 @@ app.post('/api/analyze-report', upload.single('report'), async (req, res) => {
     console.error("\n❌ Server Error during analysis:", error);
     res.status(500).json({ error: 'Failed to analyze and save the report.', details: error.message });
   }
+});
+
+const PORT = process.env.PORT || 5000;
+
+// Explicitly bind to '0.0.0.0' for Render
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`🚀 DuraMater Backend is running smoothly on port ${PORT}`);
 });
