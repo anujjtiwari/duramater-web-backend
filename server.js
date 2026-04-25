@@ -37,6 +37,15 @@ function fileToGenerativePart(buffer, mimeType) {
 // API ROUTES
 // ==========================================
 
+// ==========================================
+// API ROUTES
+// ==========================================
+
+// 0. Health Check Route (Crucial for Render)
+app.get('/', (req, res) => {
+  res.send('Sapiens Backend is running smoothly on Render! 🚀');
+});
+
 // 1. Fetch User Data Route
 app.get('/api/health-profile/:userId', async (req, res) => {
   try {
@@ -53,11 +62,23 @@ app.get('/api/health-profile/:userId', async (req, res) => {
 // 2. Upload and Analyze Route
 app.post('/api/analyze-report', upload.single('report'), async (req, res) => {
   try {
-    if (!req.file) return res.status(400).json({ error: 'No report file uploaded' });
+    console.log('\n--- 📥 NEW UPLOAD REQUEST ---');
     
-    // We need to know who this report belongs to
+    if (!req.file) {
+      console.log('❌ Error: No file was attached to the request.');
+      return res.status(400).json({ error: 'No report file uploaded' });
+    }
+    
     const userId = req.body.userId; 
-    if (!userId) return res.status(400).json({ error: 'User ID is required' });
+    if (!userId) {
+      console.log('❌ Error: User ID is missing.');
+      return res.status(400).json({ error: 'User ID is required' });
+    }
+
+    // Terminal Logging: File Acceptance
+    console.log(`👤 User ID: ${userId}`);
+    console.log(`📄 File Accepted: ${req.file.originalname} (${req.file.size} bytes, ${req.file.mimetype})`);
+    console.log('🧠 Sending document to Gemini for extraction...');
 
     const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
     const documentPart = fileToGenerativePart(req.file.buffer, req.file.mimetype);
@@ -83,27 +104,31 @@ app.post('/api/analyze-report', upload.single('report'), async (req, res) => {
 
     // Send to Gemini
     const result = await model.generateContent([prompt, documentPart]);
+    console.log('✅ Gemini analysis complete. Parsing data...');
+    
     const cleanJson = result.response.text().replace(/```json/g, '').replace(/```/g, '').trim();
     const parsedData = JSON.parse(cleanJson);
 
+    console.log('💾 Saving structured data to MongoDB Atlas...');
+
     // Save/Update in MongoDB Atlas
     const updatedProfile = await HealthProfile.findOneAndUpdate(
-      { userId: userId }, // Find by this user's ID
+      { userId: userId }, 
       { 
         hostFactors: parsedData.hostFactors,
         lastUpdated: new Date()
       },
-      { upsert: true, new: true } // Creates a new document if one doesn't exist
+      { upsert: true, new: true } 
     );
+
+    console.log('🎉 Success! Profile updated for user:', userId);
+    console.log('-------------------------------\n');
 
     // Return the updated profile to the frontend
     res.json(updatedProfile);
 
   } catch (error) {
-    console.error("Server Error:", error);
-    res.status(500).json({ error: 'Failed to analyze and save the report.' });
+    console.error("\n❌ Server Error during analysis:", error);
+    res.status(500).json({ error: 'Failed to analyze and save the report.', details: error.message });
   }
 });
-
-const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`Haversian API running on port ${PORT}`));
