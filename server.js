@@ -91,7 +91,7 @@ app.post('/api/analyze-report', upload.single('report'), async (req, res) => {
             "organ": "String",
             "status": "optimal" | "normal" | "warning" | "high",
             "markers": [
-              { "name": "String", "value": "String", "unit": "String", "indicator": "Optimal" | "Normal" | "High" | "Low" }
+              { "name": "String", "value": "String", "unit": "String", "indicator": "Optimal" | "Normal" | "High" | "Low", "range": "String" }
             ]
           }
         ]
