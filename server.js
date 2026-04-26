@@ -23,6 +23,7 @@ mongoose.connect(process.env.MONGO_URI)
 const HealthProfileSchema = new mongoose.Schema({
   userId: { type: String, required: true, unique: true },
   hostFactors: { type: Array, default: [] },
+  age: { type: Number, default: null }, // <-- NEW: Store the user's age
   lastUpdated: { type: Date, default: Date.now }
 });
 
@@ -147,5 +148,24 @@ app.delete('/api/health-profile/:userId', async (req, res) => {
   }
 });
 
+// 4. Save User Age Route
+app.post('/api/health-profile/:userId/age', async (req, res) => {
+  try {
+    const { age } = req.body;
+    if (!age) return res.status(400).json({ error: 'Age is required' });
+
+    const updatedProfile = await HealthProfile.findOneAndUpdate(
+      { userId: req.params.userId },
+      { age: age },
+      { upsert: true, new: true }
+    );
+
+    res.status(200).json(updatedProfile);
+  } catch (error) {
+    console.error("Failed to save age:", error);
+    res.status(500).json({ error: 'Server error while trying to save age.' });
+  }
+});
+
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`Haversian API running on port ${PORT}`));
+app.listen(PORT, () => console.log(`DuraMater API running on port ${PORT}`));
