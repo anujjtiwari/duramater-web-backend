@@ -129,9 +129,23 @@ app.post('/api/analyze-report', upload.single('report'), async (req, res) => {
   }
 });
 
-const PORT = process.env.PORT || 5000;
-
-// Explicitly bind to '0.0.0.0' for Render
-app.listen(PORT, '0.0.0.0', () => {
-  console.log(`🚀 DuraMater Backend is running smoothly on port ${PORT}`);
+// 3. Delete User Data Route
+app.delete('/api/health-profile/:userId', async (req, res) => {
+  try {
+    const deletedProfile = await HealthProfile.findOneAndDelete({ userId: req.params.userId });
+    
+    if (!deletedProfile) {
+      return res.status(404).json({ message: 'No profile found to delete.' });
+    }
+    
+    console.log(`✅ Health data deleted for user: ${req.params.userId}`);
+    res.status(200).json({ message: 'Data successfully deleted.' });
+    
+  } catch (error) {
+    console.error("Failed to delete profile:", error);
+    res.status(500).json({ error: 'Server error while trying to delete data.' });
+  }
 });
+
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => console.log(`Haversian API running on port ${PORT}`));
