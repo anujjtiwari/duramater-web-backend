@@ -19,7 +19,13 @@ mongoose.connect(process.env.MONGO_URI)
   .then(() => console.log('Connected to MongoDB Atlas'))
   .catch(err => console.error('MongoDB connection error:', err));
 
-// Define the Schema for the user's health profile
+  const ReportSchema = new mongoose.Schema({
+    reportDate: { type: String, required: true },
+    fileUrl: { type: String }, // If you are using Cloudinary to save the PDF
+    hostFactors: { type: Array, default: [] },
+    uploadedAt: { type: Date, default: Date.now }
+  });
+  // Define the Schema for the user's health profile
 const HealthProfileSchema = new mongoose.Schema({
   userId: { type: String, required: true, unique: true },
   hostFactors: { type: Array, default: [] },
@@ -28,12 +34,6 @@ const HealthProfileSchema = new mongoose.Schema({
   reports: [ReportSchema]
 });
 
-const ReportSchema = new mongoose.Schema({
-  reportDate: { type: String, required: true },
-  fileUrl: { type: String }, // If you are using Cloudinary to save the PDF
-  hostFactors: { type: Array, default: [] },
-  uploadedAt: { type: Date, default: Date.now }
-});
 
 const HealthProfile = mongoose.model('HealthProfile', HealthProfileSchema);
 
