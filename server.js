@@ -24,7 +24,15 @@ const HealthProfileSchema = new mongoose.Schema({
   userId: { type: String, required: true, unique: true },
   hostFactors: { type: Array, default: [] },
   age: { type: Number, default: null }, // <-- NEW: Store the user's age
-  lastUpdated: { type: Date, default: Date.now }
+  lastUpdated: { type: Date, default: Date.now },
+  reports: [ReportSchema]
+});
+
+const ReportSchema = new mongoose.Schema({
+  reportDate: { type: String, required: true },
+  fileUrl: { type: String }, // If you are using Cloudinary to save the PDF
+  hostFactors: { type: Array, default: [] },
+  uploadedAt: { type: Date, default: Date.now }
 });
 
 const HealthProfile = mongoose.model('HealthProfile', HealthProfileSchema);
